@@ -33,6 +33,7 @@ function deleteClient(name){
             var client = ClientList[i];
             client['socket'].destroy();
             ClientList.splice(i, 1);
+            return;
         }
     }
 }
@@ -88,11 +89,18 @@ function encodeDataFrame(data){
     if(l < 126)
         s.push(l);
     else if(l < 0x10000)
-        s.push(126, (l & 0xFF00) >> 2, l & 0xFF);
+        s.push(126, (l & 0xFF00) >> 8, l & 0xFF);
     else
         s.push(
-            127,0,0,0,0, //8字节数据，前4字节一般没用留空
-            (l & 0xFF000000) >> 6, (l & 0xFF0000) >> 4, (l & 0xFF00) >> 2, l & 0xFF
+            127,
+            (l & 0xFF00000000000000) >> 56,
+            (l & 0xFF000000000000) >> 48,
+            (l & 0xFF0000000000) >> 40,
+            (l & 0xFF00000000) >> 32,
+            (l & 0xFF000000) >> 24,
+            (l & 0xFF0000) >> 16,
+            (l & 0xFF00) >> 8,
+            l & 0xFF
         );
     //返回头部分和数据部分的合并缓冲区
     return Buffer.concat([new Buffer(s), o]);
